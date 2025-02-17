@@ -1,5 +1,7 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import ProductsForm from "./ProductsForm";
+import { handleError } from "vue";
 
 function ProductsList() {
     const [products, setProducts] = useState([]);
@@ -10,8 +12,29 @@ function ProductsList() {
         fetchProducts();
     }, []);
 
+    const handleDeleteProduct = async (barcode) =>{
+        if(!window.confirm("¿Etsas segurto que quiere eliminar el producto?")){
+            return;
+        }
+        try{
+            const response = await fetch(`http://10.10.60.13:3012/groceries/products/deleteOne/${barcode}`,{
+                method:"DELETE",
+            });
+            const data = await response.json();
+            if(response.ok){
+                alert("Producto eliminado correctamente");
+                fetchProducts();
+            }else{
+                alert(data.data?.message || "Error al eliminar el producto");
+            }
+        } catch{
+            console.error("Error al eliminar el producto:", error);
+            alert("Error al eliminar el producto");
+        }
+    };
+
     const fetchProducts = () => {
-        fetch("http://localhost:3012/groceries/products/getAll")
+        fetch("http://10.10.60.13:3012/groceries/products/getAll")
             .then((response) => response.json())
             .then((data) => {
                 if (data && data.data) {

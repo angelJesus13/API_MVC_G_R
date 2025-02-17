@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-const ProductsForm = ({ productToEdit, onSave }) => {
+import React from "react";const ProductsForm = ({ productToEdit, onSave }) => {
     const [product, setProduct] = useState({
         barcode: "",
         description: "",
@@ -28,8 +27,8 @@ const ProductsForm = ({ productToEdit, onSave }) => {
         try {
             const method = productToEdit ? "PUT" : "POST";
             const endpoint = productToEdit
-                ? `http://localhost:3012/groceries/products/update/${product.barcode}`
-                : "http://localhost:3012/groceries/products/insert";
+                ? `http://10.10.60.13:3012/groceries/products/update/${product.barcode}`
+                : "http://10.10.60.13:3012/groceries/products/insert";
 
             const response = await fetch(endpoint, {
                 method,
