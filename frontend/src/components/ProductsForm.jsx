@@ -1,18 +1,23 @@
 import { useState, useEffect } from "react";
-import React from "react";const ProductsForm = ({ productToEdit, onSave }) => {
+import React from "react";
+
+const ProductsForm = ({ productToEdit, onSave }) => {
     const [product, setProduct] = useState({
         barcode: "",
         description: "",
         brand: "",
         price: "",
         cost: "",
-        expire_date: "",
+        expire_date: "",  // Asegúrate de que expire_date tenga un valor vacío por defecto
         stock: "",
     });
 
     useEffect(() => {
         if (productToEdit) {
-            setProduct(productToEdit);
+            setProduct({
+                ...productToEdit,
+                expire_date: productToEdit.expire_date ? productToEdit.expire_date.split("T")[0] : "", // Convertir la fecha al formato correcto (YYYY-MM-DD)
+            });
         }
     }, [productToEdit]);
 
@@ -22,26 +27,47 @@ import React from "react";const ProductsForm = ({ productToEdit, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!product.barcode.trim()) return alert("Barcode is required");
+
+        // Validación: No permitir que el barcode sea vacío
+        if (!product.barcode || product.barcode.trim() === "") {
+            return alert("El código de barras es obligatorio.");
+        }
+
+        // Verificar que la fecha de caducidad esté en el formato correcto
+        if (product.expire_date && isNaN(new Date(product.expire_date))) {
+            return alert("La fecha de caducidad no es válida.");
+        }
+
+        // Log para verificar los datos antes de enviarlos
+        console.log("Datos enviados: ", product);
 
         try {
             const method = productToEdit ? "PUT" : "POST";
             const endpoint = productToEdit
-                ? `http://10.10.60.13:3012/groceries/products/update/${product.barcode}`
-                : "http://10.10.60.13:3012/groceries/products/insert";
+                ? `http://192.168.1.98:3012/groceries/products/update/${product.barcode}`
+                : "http://192.168.1.98:3012/groceries/products/insert";
+
+            // Verificar el objeto que se va a enviar
+            console.log("Objeto a enviar: ", { ...product, barcode: product.barcode.trim() });
 
             const response = await fetch(endpoint, {
                 method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(product),
+                body: JSON.stringify({ ...product, barcode: product.barcode.trim() }), // Asegurar que se envía correctamente
             });
 
             const data = await response.json();
-            alert(data.data.message || "Product saved successfully");
+
+            if (data.data?.message) {
+                alert(data.data.message);
+            } else {
+                alert("Producto guardado correctamente");
+            }
+
             onSave();
             handleClear();
         } catch (error) {
-            alert("Error saving product: " + error.message);
+            alert("Error guardando el producto: " + error.message);
         }
     };
 
@@ -52,7 +78,7 @@ import React from "react";const ProductsForm = ({ productToEdit, onSave }) => {
             brand: "",
             price: "",
             cost: "",
-            expire_date: "",
+            expire_date: "",  // Asegúrate de limpiar la fecha
             stock: "",
         });
     };

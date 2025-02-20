@@ -1,7 +1,9 @@
 import productsDAO from "../dao/products.dao.js";
+import moment from "moment-timezone";
 
 const productsController = {};
 
+// Obtener todos los productos
 productsController.getAll = (req, res) => {
     productsDAO.getAll()
         .then((products) => {
@@ -19,22 +21,23 @@ productsController.getAll = (req, res) => {
         });
 };
 
-productsController.getOne = (req,res)=>{
+// Obtener un producto por código de barras
+productsController.getOne = (req, res) => {
     productsDAO.getOne(req.params.barcode)
-    .then((product)=>{
-        if(product != null)
-            res.json({data:product})
-        else
-            res.json({data:{message:'Product not found'}})
-    })
-    .catch((error)=>{
-        res.json({
-            data:{
-                "message":error
-            }
+        .then((product) => {
+            if (product != null)
+                res.json({ data: product });
+            else
+                res.json({ data: { message: 'Product not found' } });
         })
-    }) 
-}
+        .catch((error) => {
+            res.json({
+                data: {
+                    "message": error
+                }
+            });
+        });
+};
 
 productsController.insert = async (req, res) => {
     const { barcode, description, brand, price, expire_date, stock } = req.body;
@@ -44,12 +47,22 @@ productsController.insert = async (req, res) => {
         return res.status(400).json({ data: { message: "Barcode is required" } });
     }
 
+    // Verificar si expire_date está presente y es válido
+    if (!expire_date || expire_date.trim() === "") {
+        return res.status(400).json({ data: { message: "Expire date is required" } });
+    }
+
     try {
-        // Verificar si ya existe un producto con el mismo barcode
-        const existingProduct = await productsDAO.getOne(barcode);
-        if (existingProduct) {
-            return res.status(400).json({ data: { message: "Product with this barcode already exists" } });
+        // Convierte la fecha expire_date a la zona horaria Central Mexico (CST)
+        const parsedExpireDate = moment.tz(expire_date, "America/Mexico_City").toDate();
+
+        // Verifica si la fecha es válida
+        if (isNaN(parsedExpireDate)) {
+            return res.status(400).json({ data: { message: "Invalid expire date" } });
         }
+
+        // Formatear la fecha a "Mes Día, Año" (por ejemplo: Dec 12, 2029)
+        req.body.expire_date = moment(parsedExpireDate).format("MMM DD, YYYY");
 
         const response = await productsDAO.insert(req.body);
         res.json({
@@ -65,8 +78,7 @@ productsController.insert = async (req, res) => {
     }
 };
 
-
-
+// Actualizar un producto por código de barras
 productsController.updateOne = async (req, res) => {
     const { barcode } = req.params;
     const updatedProductData = req.body;
@@ -78,7 +90,24 @@ productsController.updateOne = async (req, res) => {
         });
     }
 
+    // Asegurarse de que expire_date sea válido en la actualización
+    if (!updatedProductData.expire_date || updatedProductData.expire_date.trim() === "") {
+        return res.status(400).json({
+            data: { message: "Expire date is required" },
+        });
+    }
+
     try {
+        // Convierte la fecha expire_date a la zona horaria Central Mexico (CST)
+        const parsedExpireDate = moment.tz(updatedProductData.expire_date, "America/Mexico_City").toDate();
+
+        if (isNaN(parsedExpireDate)) {
+            return res.status(400).json({ data: { message: "Invalid expire date" } });
+        }
+
+        // Formatear la fecha a "Mes Día, Año"
+        updatedProductData.expire_date = moment(parsedExpireDate).format("MMM DD, YYYY");
+
         const result = await productsDAO.updateOne(updatedProductData, barcode);
         if (!result) {
             return res.json({ data: { message: "Product not found" } });
@@ -94,7 +123,7 @@ productsController.updateOne = async (req, res) => {
     }
 };
 
-
+// Eliminar un producto por código de barras
 productsController.deleteOne = async (req, res) => {
     const { barcode } = req.params;
 
@@ -112,5 +141,22 @@ productsController.deleteOne = async (req, res) => {
     }
 };
 
+// Verificar si el código de barras ya existe
+productsController.checkBarcodeExists = async (req, res) => {
+    const { barcode } = req.params;
+
+    try {
+        const product = await productsDAO.getOne(barcode);
+
+        if (product) {
+            return res.json({ exists: true, message: "Este código de barras ya existe." });
+        } else {
+            return res.json({ exists: false });
+        }
+    } catch (error) {
+        console.error("Error verificando código de barras:", error);
+        return res.status(500).json({ error: "Error en la validación" });
+    }
+};
 
 export default productsController;

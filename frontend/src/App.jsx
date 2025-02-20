@@ -1,18 +1,20 @@
 import { useState } from "react";
-import ProductList from "./components/ProductList";
-import EmployeeList from "./components/EmployeeList";
-import CustomerList from "./components/CustomerList";
-import './App.css'; // Importa el archivo CSS donde se contienen los estilos de Tailwind
+import ProductList from "./components/ProductList"; // Para los productos
+import EmployeeList from "./components/EmployeeList"; // Para los empleados
+import CustomerList from "./components/CustomerList"; // Para los clientes
+import './App.css'; // Tailwind importado
 
 function App() {
-    const [view, setView] = useState("products");
+    const [view, setView] = useState("products"); // Vista actual
 
     return (
         <div className="bg-gradient-to-r from-green-400 to-green-600 min-h-screen text-white">
             <div className="container mx-auto p-6">
-                <h1 className="text-4xl font-extrabold text-center text-white mb-6">Gestión de Tienda</h1>
+                <h1 className="text-4xl font-extrabold text-center text-white mb-6">
+                    Gestión de Tienda
+                </h1>
 
-                {/* Navbar con botones estilizados */}
+                {/* Navbar */}
                 <nav className="flex justify-center gap-6 mb-6">
                     <button
                         onClick={() => setView("products")}
@@ -34,7 +36,7 @@ function App() {
                     </button>
                 </nav>
 
-                {/* Mostrar las vistas correspondientes */}
+                {/* Vistas */}
                 {view === "products" && <ProductList />}
                 {view === "employees" && <EmployeeList />}
                 {view === "customers" && <CustomerList />}

@@ -2,90 +2,103 @@ import employeesDAO from "../dao/employees.dao.js";
 
 const employeesController = {};
 
+// Obtener todos los empleados
 employeesController.getAll = (req, res) => {
     employeesDAO.getAll()
-    .then((employees) => {
-        res.json({
-            data: employees  // Corregido para acceder correctamente a la data de los empleados
-        });
-    })
-    .catch((error) => {
-        res.json({
-            data: {
-                "message": error
+        .then((employees) => {
+            if (employees && employees.length > 0) {
+                res.json({ data: employees });
+            } else {
+                res.json({ data: [], message: 'No employees found' });
             }
-        });
-    });
-};
-
-employeesController.getOne = (req, res) => {
-    employeesDAO.getOne(req.params.employee_number)
-    .then((employee) => {
-        if (employee != null) {
-            res.json({ data: employee });
-        } else {
-            res.json({ data: { message: 'Employee not found' } });
-        }
-    })
-    .catch((error) => {
-        res.json({
-            data: {
-                "message": error
-            }
-        });
-    });
-};
-
-employeesController.insert = (req, res) => {
-    employeesDAO.insert(req.body)
-        .then((response) => {
-            res.json({ message: 'Employee inserted successfully', employee: response });
         })
         .catch((error) => {
-            res.json({
-                data: {
-                    message: error.message || 'Some error occurred while inserting employee.',
-                },
-            });
+            res.json({ data: { message: error.message || 'Error retrieving employees' } });
         });
 };
 
-employeesController.updateOne = (req, res) => {
-    employeesDAO.updateOne(req.body, req.params.employee_number)
-    .then((result) => {
-        res.json({
-            data: {
-                message: 'Employee updated successfully',
-                result: result
-            }
+// Obtener un empleado por número de empleado
+employeesController.getOne = (req, res) => {
+    employeesDAO.getOne(req.params.employee_number)
+        .then((employee) => {
+            if (employee != null)
+                res.json({ data: employee });
+            else
+                res.json({ data: { message: 'Employee not found' } });
+        })
+        .catch((error) => {
+            res.json({ data: { message: error.message || 'Error retrieving employee' } });
         });
-    })
-    .catch((error) => {
-        res.json({
-            data: {
-                message: error.message || 'Some error occurred while updating employee.'
-            }
-        });
-    });
 };
 
-employeesController.deleteOne = (req, res) => {
-    employeesDAO.deleteOne(req.params.employee_number)
-    .then((result) => {
+// Insertar un nuevo empleado
+employeesController.insert = async (req, res) => {
+    const { employee_number, name, lastname, age, email, salary } = req.body;
+
+    // Validar que employee_number no esté vacío
+    if (!employee_number || employee_number.trim() === "") {
+        return res.status(400).json({ data: { message: "Employee number is required" } });
+    }
+
+    try {
+        // Verificar si ya existe un empleado con ese número
+        const existingEmployee = await employeesDAO.getOne(employee_number);
+        if (existingEmployee) {
+            return res.status(400).json({ data: { message: "Employee with this number already exists" } });
+        }
+
+        const response = await employeesDAO.insert(req.body);
         res.json({
-            data: {
-                message: 'Employee deleted successfully',
-                result: result
-            }
+            data: "Employee inserted successfully",
+            employee: response,
         });
-    })
-    .catch((error) => {
+    } catch (error) {
         res.json({
-            data: {
-                message: error.message || 'Some error occurred while deleting employee.'
-            }
+            data: { message: error.message || 'Error inserting employee' },
         });
-    });
+    }
+};
+
+// Actualizar un empleado
+employeesController.updateOne = async (req, res) => {
+    const { employee_number } = req.params;
+    const updatedEmployeeData = req.body;
+
+    // Validar que employee_number se envíe y no esté vacío
+    if (!updatedEmployeeData.employee_number || updatedEmployeeData.employee_number.trim() === "") {
+        return res.status(400).json({ data: { message: "Employee number is required" } });
+    }
+    // Impedir cambios en el employee_number
+    if (updatedEmployeeData.employee_number !== employee_number) {
+        return res.status(400).json({ data: { message: "Employee number cannot be changed" } });
+    }
+
+    try {
+        const result = await employeesDAO.updateOne(updatedEmployeeData, employee_number);
+        if (!result) {
+            return res.json({ data: { message: "Employee not found" } });
+        }
+        res.json({
+            data: { message: "Employee updated successfully", result: result },
+        });
+    } catch (error) {
+        res.json({
+            data: { message: error.message || 'Error updating employee' },
+        });
+    }
+};
+
+// Eliminar un empleado por número de empleado
+employeesController.deleteOne = async (req, res) => {
+    try {
+        const result = await employeesDAO.deleteOne(req.params.employee_number);
+        if (!result) {
+            return res.status(404).json({ data: { message: "Employee not found" } });
+        }
+        res.json({ data: { message: "Employee deleted successfully", result: result } });
+    } catch (error) {
+        res.status(500).json({ data: { message: error.message || "Error deleting employee" } });
+    }
 };
 
 export default employeesController;
