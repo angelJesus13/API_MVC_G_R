@@ -10,7 +10,7 @@ function EmployeeList() {
     }, []);
 
     const fetchEmployees = () => {
-        fetch("http://192.168.1.98:3012/groceries/employees/getAll")
+        fetch("http://10.10.60.7:3012/groceries/employees/getAll")
             .then((response) => response.json())
             .then((data) => {
                 if (data && data.data) {
@@ -25,7 +25,7 @@ function EmployeeList() {
     const handleDeleteEmployee = async (employeeNumber) => {
         if (!window.confirm("¿Estás seguro que quieres eliminar al empleado?")) return;
         try {
-            const response = await fetch(`http://192.168.1.98:3012/groceries/employees/deleteOne/${employeeNumber}`, {
+            const response = await fetch(`http://10.10.60.7:3012/groceries/employees/deleteOne/${employeeNumber}`, {
                 method: "DELETE",
             });
             const data = await response.json();

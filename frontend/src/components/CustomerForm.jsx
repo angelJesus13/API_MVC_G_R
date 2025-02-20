@@ -36,8 +36,8 @@ const CustomerForm = ({ customerToEdit, onSave }) => {
         try {
             const method = customerToEdit ? "PUT" : "POST";
             const endpoint = customerToEdit
-                ? `http://192.168.1.98:3012/groceries/customers/updateOne/${customer.customer_number}`
-                : "http://192.168.1.98:3012/groceries/customers/insert";
+                ? `http://10.10.60.7:3012/groceries/customers/updateOne/${customer.customer_number}`
+                : "http://10.10.60.7:3012/groceries/customers/insert";
 
             const response = await fetch(endpoint, {
                 method,

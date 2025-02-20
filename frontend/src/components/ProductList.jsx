@@ -11,7 +11,7 @@ function ProductsList() {
     }, []);
 
     const fetchProducts = () => {
-        fetch("http://192.168.1.98:3012/groceries/products/getAll")
+        fetch("http://10.10.60.7:3012/groceries/products/getAll")
             .then((response) => response.json())
             .then((data) => {
                 if (data && data.data) {
@@ -31,7 +31,7 @@ function ProductsList() {
             return;
         }
         try {
-            const response = await fetch(`http://192.168.1.98:3012/groceries/products/deleteOne/${barcode}`, {
+            const response = await fetch(`http://10.10.60.7:3012/groceries/products/deleteOne/${barcode}`, {
                 method: "DELETE",
             });
             const data = await response.json();
@@ -88,7 +88,7 @@ function ProductsList() {
                     </ul>
                 </div>
                 <div className="flex-1">
-                    <ProductsForm productToEdit={productToEdit} onSave={fetchProducts} />
+                    <ProductsForm productToEdit={productToEdit} onSave={() => { fetchProducts(); setProductToEdit(null); }} />
                 </div>
             </div>
         </div>

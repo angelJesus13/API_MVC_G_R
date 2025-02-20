@@ -11,7 +11,7 @@ function CustomerList() {
     }, []);
 
     const fetchCustomers = () => {
-        fetch("http://192.168.1.98:3012/groceries/customers/getAll")
+        fetch("http://10.10.60.7:3012/groceries/customers/getAll")
             .then((response) => response.json())
             .then((data) => {
                 if (data && data.data) {
@@ -31,7 +31,7 @@ function CustomerList() {
             return;
         }
         try {
-            const response = await fetch(`http://192.168.1.98:3012/groceries/customers/deleteOne/${customer_number}`, {
+            const response = await fetch(`http://10.10.60.7:3012/groceries/customers/deleteOne/${customer_number}`, {
                 method: "DELETE",
             });
             const data = await response.json();

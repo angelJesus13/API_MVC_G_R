@@ -46,8 +46,8 @@ const EmployeeForm = ({ employeeToEdit, onSave, onClose }) => {
         try {
             const method = employeeToEdit ? "PUT" : "POST";
             const endpoint = employeeToEdit
-                ? `http://192.168.1.98:3012/groceries/employees/update/${employee.employee_number}`
-                : "http://192.168.1.98:3012/groceries/employees/insert";
+                ? `http://10.10.60.7:3012/groceries/employees/update/${employee.employee_number}`
+                : "http://10.10.60.7:3012/groceries/employees/insert";
 
             const response = await fetch(endpoint, {
                 method,
